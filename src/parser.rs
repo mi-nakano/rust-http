@@ -68,3 +68,35 @@ pub fn parse(mut buf: &[u8]) -> ParseResult<Request> {
         // Result<Request, Utf8Error> -> ParseResult<Request>
         .into()
 }
+
+// `#[..]`でその次にくるアイテムに「アトリビュート」をつけられる
+// `#[test]`アトリビュートでアイテムがテストであることをコンパイラに伝える
+#[test]
+fn http09_get_success_root() {
+    let req = b"GET /\r\n";
+    let res = parse(req);
+    // テストの中身では主に`assert`マクロを使い何もなければok、パニックならfailとなる
+    assert!(res.is_complete());
+}
+
+#[test]
+fn http09_get_success_foo_bar() {
+    let req = b"GET /foo/bar\r\n";
+    let res = parse(req);
+    assert!(res.is_complete());
+}
+
+#[test]
+fn http09_get_partial_root() {
+    let req = b"GET /\r";
+    let res = parse(req);
+    assert!(res.is_partial());
+}
+
+#[test]
+#[should_panic]
+fn http09_post_failure() {
+    let req = b"POST /\r\n";
+    let res = parse(req);
+    assert!(res.is_complete());
+}
